@@ -9,6 +9,9 @@ use PhpOffice\PhpSpreadsheet\Writer\Xls;
 
 class XLSGenerator
 {
+
+    private const FILENAME = 'tmp/codes.xls';
+
     public function generate($codes) {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -18,6 +21,7 @@ class XLSGenerator
         }
 
         $writer = new Xls($spreadsheet);
-        $writer->save('blablabla.xls');
+        $writer->save(self::FILENAME);
+        return self::FILENAME;
     }
 }
