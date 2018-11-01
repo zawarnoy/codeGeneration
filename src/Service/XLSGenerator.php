@@ -9,7 +9,6 @@ use PhpOffice\PhpSpreadsheet\Writer\Xls;
 
 class XLSGenerator
 {
-
     private const FILENAME = 'tmp/codes.xls';
 
     public function generate($codes) {

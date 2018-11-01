@@ -33,3 +33,7 @@ services:
     App\Service\CodeGenerator:
         autowire: true
         public: true
+
+    App\EventListener\ApiExceptionListener:
+        tags:
+        - { name: kernel.event_listener, event: kernel.exception }

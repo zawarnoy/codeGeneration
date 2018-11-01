@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Code;
+use App\Exception\CodeNotFoundException;
 use App\Service\CodeGenerator;
 use App\Service\XLSGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -10,6 +11,8 @@ use Symfony\Component\CssSelector\Exception\InternalErrorException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 
 class CodeController extends AbstractController
 {
@@ -39,22 +42,21 @@ class CodeController extends AbstractController
      * @param $code
      * @return \Symfony\Component\HttpFoundation\JsonResponse
      * @throws InternalErrorException
+     * @throws CodeNotFoundException
      */
     public function codeAction($code)
     {
         try {
             $repository = $this->getDoctrine()->getRepository(Code::class);
             $codeEntity = $repository->findOneBy(['code' => $code]);
-
-            if (empty($codeEntity)) {
-                throw new NotFoundHttpException("Code not found");
-            }
-
-            return $this->json(
-                $codeEntity
-            );
         } catch (\Exception $e) {
             throw new InternalErrorException();
         }
+
+        if (empty($codeEntity)) {
+            throw new CodeNotFoundException();
+        }
+
+        return $this->json($codeEntity);
     }
 }
