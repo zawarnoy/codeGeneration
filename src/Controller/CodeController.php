@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Code;
 use App\Exception\CodeNotFoundException;
+use App\Exception\MethodNotAllowedApiException;
 use App\Service\CodeGenerator;
 use App\Service\XLSGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,21 +18,26 @@ use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 class CodeController extends AbstractController
 {
     /**
-     * @Route("/generate", name="generate_code", methods={"POST"})
+     * @Route("/generate", name="generate_code")
      * @param Request $request
      * @param CodeGenerator $codeGenerator
      * @param XLSGenerator $XLSGenerator
      * @return BinaryFileResponse|\Symfony\Component\HttpFoundation\JsonResponse
+     * @throws MethodNotAllowedApiException
      */
     public function generateAction(Request $request, CodeGenerator $codeGenerator, XLSGenerator $XLSGenerator)
     {
+        if(!$request->isMethod("POST")) {
+            throw new MethodNotAllowedApiException();
+        }
+
         $nb = $request->request->get('nb', 1);
         $export = $request->request->get('export', '');
         $codes = $codeGenerator->generateFewEntities($nb);
 
         if ($export === 'xls') {
             $filename = $XLSGenerator->generate($codes);
-            return new BinaryFileResponse($filename);
+            return (new BinaryFileResponse($filename))->deleteFileAfterSend();
         }
 
         return $this->json($codes);
@@ -39,13 +45,19 @@ class CodeController extends AbstractController
 
     /**
      * @Route("/{code}")
+     * @param Request $request
      * @param $code
      * @return \Symfony\Component\HttpFoundation\JsonResponse
-     * @throws InternalErrorException
      * @throws CodeNotFoundException
+     * @throws InternalErrorException
+     * @throws MethodNotAllowedApiException
      */
-    public function codeAction($code)
+    public function codeAction(Request $request, $code)
     {
+        if(!$request->isMethod("GET")) {
+            throw new MethodNotAllowedApiException();
+        }
+
         try {
             $repository = $this->getDoctrine()->getRepository(Code::class);
             $codeEntity = $repository->findOneBy(['code' => $code]);
